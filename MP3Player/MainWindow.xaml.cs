@@ -5,6 +5,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+
 using NAudio.Wave;
 using Microsoft.Win32;
 using System.Windows.Threading;
@@ -21,7 +22,7 @@ namespace MP3Player
         private readonly MMDeviceEnumerator mmde = new MMDeviceEnumerator();
         private readonly MMDevice mmd;
         private int index = 0, count = 0;
-        byte cl = 0, cr = 0;
+        private byte cl = 0, cr = 0;
         private float l = 0, r = 0;
         public MainWindow()
         {
@@ -41,14 +42,7 @@ namespace MP3Player
             volume.ValueChanged += Volume_ValueChanged;
             string[] s = new string[100];
             count = Settings.load_Playlist(s);
-            List<MusicDetails> list = new List<MusicDetails>();
-            for (int i = 0; i< count;i++)
-            {
-                wfr = new Mp3FileReader(s[i]);
-                TimeSpan ts = wfr.TotalTime;
-                list.Add(new MusicDetails() { Title = StringSep.MusicTitle(s[i]), Duration = ts.ToString(@"mm\:ss"), Path = s[i] });
-            }
-            Music_list.ItemsSource = list;
+            StringSep.LoadMusic(s, count, Music_list);
             count = Music_list.Items.Count;
             Settings.save_playlist(s, count);
         }
@@ -127,7 +121,6 @@ namespace MP3Player
             wo.Init(wfr);
             wo.Play();
             var f = TagLib.File.Create(str);
-           
             var pic = f.GetTag(TagLib.TagTypes.Id3v2);
             npl.Content = fil.Title;
             if (pic.Pictures.Length > 0)
@@ -144,6 +137,7 @@ namespace MP3Player
             
             currenttime.Visibility = Visibility.Visible;
             dispatcherTimer.Start();
+            dispatcherTimer.Interval = TimeSpan.FromMilliseconds(25);
             dispatcherTimer.Tick += DispatcherTimer_Tick;
         }
         private void DispatcherTimer_Tick(object sender, EventArgs e)
@@ -173,14 +167,7 @@ namespace MP3Player
             if (ofd.ShowDialog() == true)
             {
                 string[] s = ofd.FileNames;
-                List<MusicDetails> list = new List<MusicDetails>();
-                foreach (string s2 in s)
-                {
-                    wfr = new Mp3FileReader(s2);
-                    TimeSpan ts = wfr.TotalTime;
-                    list.Add(new MusicDetails() {Title = StringSep.MusicTitle(s2), Duration = ts.ToString(@"mm\:ss"), Path = s2});     
-                }
-                Music_list.ItemsSource = list;
+                StringSep.LoadMusic(s, s.Length, Music_list);
                 count = Music_list.Items.Count;
                 Settings.save_playlist(s, count);
             }

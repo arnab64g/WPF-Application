@@ -1,4 +1,8 @@
-﻿namespace MP3Player
+﻿using System.Collections.Generic;
+using System;
+using NAudio.Wave;
+using System.Windows.Controls;
+namespace MP3Player
 {
     public class MusicDetails
     {
@@ -30,6 +34,18 @@
                 emp += val[i];
             }
             return emp;
+        }
+        public static void LoadMusic(string[] st, int n, ListView mainWindow)
+        {
+            Mp3FileReader wfr;
+            List<MusicDetails> list = new List<MusicDetails>();
+            for (int i = 0; i < n; i++)
+            {
+                wfr = new Mp3FileReader(st[i]);
+                TimeSpan ts = wfr.TotalTime;
+                list.Add(new MusicDetails() { Title = StringSep.MusicTitle(st[i]), Duration = ts.ToString(@"mm\:ss"), Path = st[i] });
+            }
+            mainWindow.ItemsSource = list;
         }
     }
 }
